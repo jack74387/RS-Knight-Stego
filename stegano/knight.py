@@ -1,10 +1,8 @@
+# knight_path.py
+
 import random
 
 class KnightTour:
-    """
-    使用 Warnsdorff 規則的騎士巡遊演算法
-    用於在圖像內選取不重複的像素座標
-    """
     moves = [(2,1),(1,2),(-1,2),(-2,1),(-2,-1),(-1,-2),(1,-2),(2,-1)]
 
     def __init__(self, width: int, height: int, seed: int = None):
@@ -16,24 +14,42 @@ class KnightTour:
     def _valid(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
 
-    def generate_path(self, start_x: int, start_y: int, length: int) -> list:
-        path = [(start_x, start_y)]
-        for _ in range(length - 1):
-            x, y = path[-1]
-            # 找所有合法且未走過的移動
-            neighbors = [(x+dx, y+dy) for dx, dy in self.moves if self._valid(x+dx,y+dy) and (x+dx,y+dy) not in path]
-            if not neighbors:
-                break
-            # Warnsdorff: 選擇後續可走動數最少的
-            neighbors.sort(key=lambda pos: self._count_onward(pos, path))
-            path.append(neighbors[0])
-        return path
+    def generate_path(self, start_x: int, start_y: int, length: int, used: set = None, max_attempts: int = 1000) -> list:
+        if used is None:
+            used = set()
 
-    def _count_onward(self, pos, path):
-        x,y = pos
+        attempts = 0
+        while attempts < max_attempts:
+            path = []
+            visited = set()
+            x, y = start_x, start_y
+            path.append((x, y))
+            visited.add((x, y))
+            for _ in range(length - 1):
+                neighbors = [
+                    (x+dx, y+dy) for dx, dy in self.moves
+                    if self._valid(x+dx, y+dy)
+                    and (x+dx, y+dy) not in visited
+                    and (x+dx, y+dy) not in used
+                ]
+                if not neighbors:
+                    break
+                neighbors.sort(key=lambda pos: self._count_onward(pos, visited | used))
+                x, y = neighbors[0]
+                path.append((x, y))
+                visited.add((x, y))
+
+            if len(path) == length:
+                return path
+            attempts += 1
+
+        raise RuntimeError("Failed to generate non-overlapping Knight path after many attempts")
+
+    def _count_onward(self, pos, visited):
+        x, y = pos
         cnt = 0
-        for dx,dy in self.moves:
-            nx,ny = x+dx, y+dy
-            if self._valid(nx, ny) and (nx,ny) not in path:
+        for dx, dy in self.moves:
+            nx, ny = x+dx, y+dy
+            if self._valid(nx, ny) and (nx, ny) not in visited:
                 cnt += 1
         return cnt

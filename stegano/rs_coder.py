@@ -14,6 +14,5 @@ class RSCoder:
         return self.rs.encode(data)
 
     def decode(self, encoded: bytes) -> bytes:
-        # returns original 4 bytes, or raises ReedSolomonError
         decoded, _, _ = self.rs.decode(encoded)
         return decoded
