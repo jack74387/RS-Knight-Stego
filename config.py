@@ -1,0 +1,7 @@
+# config.py
+MASK_SIZE = (8,8)
+THRESHOLD = 0.1
+MAX_ITERS = 5
+TOP_PERCENT = 0.05
+RS_N = 255
+RS_K = 223
